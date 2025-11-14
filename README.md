@@ -76,6 +76,20 @@ php artisan test
 
 ---
 
+## Colección de Postman
+
+El proyecto incluye una colección de Postman con todos los endpoints configurados y listos para usar.
+
+**Ubicación:** `/postman/laravel-orders-api.postman_collection.json`
+
+**Cómo usar:**
+1. Abrir Postman
+2. Click en "Import"
+3. Seleccionar el archivo `postman/laravel-orders-api.postman_collection.json`
+4. La colección incluye los 4 endpoints con ejemplos de request/response
+
+---
+
 ## API Endpoints
 
 Base URL: `http://localhost:8000/api`
