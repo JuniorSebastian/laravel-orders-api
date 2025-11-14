@@ -1,17 +1,96 @@
 # API REST - Pedidos y Pagos
 
-API REST robusta para gestión de pedidos y procesamiento de pagos con integración a gateway externo. Construida con **Laravel 11**, aplicando **principios SOLID** y **Clean Architecture**.
-
 [![PHP Version](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Tests](https://img.shields.io/badge/Tests-11%20passed-00C853)](https://phpunit.de/)
 
+## Resumen Ejecutivo
+
+API REST profesional para gestión de pedidos y pagos, construida con **Laravel 11**, **PostgreSQL** y **Docker**. Implementa arquitectura limpia con **principios SOLID**, integración con gateway externo, máquina de estados robusta para gestión de pedidos (PENDING → PAID/FAILED) y **100% de cobertura** en endpoints con 11 tests automatizados. Incluye validaciones exhaustivas, manejo de reintentos de pago, transacciones atómicas y colección de Postman para testing inmediato.
+
+---
+
+## Flujo de la Aplicación
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FLUJO DE PEDIDOS Y PAGOS                  │
+└─────────────────────────────────────────────────────────────┘
+
+  POST /api/orders
+  {"customer_name": "Juan", "total_amount": 150.50}
+                    │
+                    ▼
+            ┌───────────────┐
+            │    PENDING    │ ← Estado inicial del pedido
+            └───────┬───────┘
+                    │
+                    │ POST /api/payments {"order_id": 1}
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+        ▼                       ▼
+  ┌──────────┐           ┌──────────┐
+  │   PAID   │           │  FAILED  │
+  │ (FINAL)  │           │(REINTENTO)│
+  └──────────┘           └─────┬────┘
+       ✓                       │
+  No acepta más             Permite
+  pagos nuevos            nuevo intento
+                                │
+                    POST /api/payments
+                                │
+                                ▼
+                          ┌──────────┐
+                          │   PAID   │
+                          └──────────┘
+```
+
+---
+
+## Inicio Rápido (2 minutos)
+
+```bash
+# 1. Instalar y configurar (solo primera vez)
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+
+# 2. Iniciar servidor
+php artisan serve
+
+# 3. Crear un pedido
+curl -X POST http://127.0.0.1:8000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customer_name": "Demo User", "total_amount": 99.90}'
+
+# Respuesta: {"data": {"id": 1, "status": "pending", ...}}
+
+# 4. Procesar pago
+curl -X POST http://127.0.0.1:8000/api/payments \
+  -H "Content-Type: application/json" \
+  -d '{"order_id": 1}'
+
+# Respuesta: {"data": {"status": "success", ...}}
+
+# 5. Ver el pedido actualizado
+curl http://127.0.0.1:8000/api/orders/1
+
+# Respuesta: {"data": {"id": 1, "status": "paid", ...}}
+```
+
+También puedes importar la colección de Postman desde `/postman/Laravel_Orders_API.postman_collection.json`.
+
 ---
 
 ## Tabla de Contenidos
 
+- [Resumen Ejecutivo](#resumen-ejecutivo)
+- [Flujo de la Aplicación](#flujo-de-la-aplicación)
+- [Inicio Rápido](#inicio-rápido-2-minutos)
 - [Características](#características)
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
