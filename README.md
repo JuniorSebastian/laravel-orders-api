@@ -13,14 +13,14 @@ API REST robusta para gestión de pedidos y procesamiento de pagos con integraci
 ## Tabla de Contenidos
 
 - [Características](#características)
-- [Demo Rápida](#demo-rápida-5-minutos)
+- [Requisitos](#requisitos)
 - [Instalación](#instalación)
-  - [Con Docker (Recomendado)](#opción-1-con-docker-recomendado)
-  - [Sin Docker](#opción-2-instalación-local)
 - [API Endpoints](#api-endpoints)
-- [Arquitectura](#arquitectura)
 - [Testing](#testing)
+- [Arquitectura](#arquitectura)
+- [Decisiones Técnicas](#decisiones-técnicas)
 - [Stack Tecnológico](#stack-tecnológico)
+- [Despliegue con Docker](#despliegue-con-docker)
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq-preguntas-frecuentes)
 
@@ -41,47 +41,8 @@ Type Safety - PHP 8.2+ Enums tipados
 
 ---
 
-## Demo Rápida (5 minutos)
-
-```bash
-# 1. Clonar y levantar con Docker
-git clone https://github.com/JuniorSebastian/laravel-orders-api.git
-cd laravel-orders-api
-docker compose up -d
-
-# 2. Configurar y migrar
-cp .env.docker .env
-docker compose exec app php artisan migrate
-
-# 3. Probar con curl
-curl http://localhost:8000/api/orders
-# {"data":[]}
-
-# 4. Crear una orden
-curl -X POST http://localhost:8000/api/orders \
-  -H "Content-Type: application/json" \
-  -d '{"customer_name":"Juan Pérez","total_amount":150.50}'
-
-# 5. Procesar pago
-curl -X POST http://localhost:8000/api/payments \
-  -H "Content-Type: application/json" \
-  -d '{"order_id":1}'
-```
-
-**Resultado:** Orden creada y pago procesado exitosamente.
-
-Importa la colección de Postman desde `/postman/Laravel_Orders_API.postman_collection.json` para probar todos los endpoints.
-
----
-
 ## Requisitos
 
-### Con Docker (Recomendado)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 20.10+
-- Docker Compose 2.0+
-- Git
-
-### Sin Docker
 | Componente | Versión |
 |------------|---------|
 | PHP | 8.2+ |
@@ -89,19 +50,11 @@ Importa la colección de Postman desde `/postman/Laravel_Orders_API.postman_coll
 | Composer | 2.0+ |
 | Extensiones PHP | `pdo_pgsql`, `mbstring`, `curl` |
 
+**Alternativa:** Si prefieres no instalar nada localmente, puedes usar [Docker](#despliegue-con-docker) (ver al final del documento).
+
+---
+
 ## Instalación
-
-### Opción 1: Con Docker (Recomendado)
-
-Docker proporciona un entorno completamente aislado y reproducible. **No necesitas instalar PHP, PostgreSQL ni Composer en tu máquina.**
-
-#### Requisitos Previos
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
-- [Docker Compose](https://docs.docker.com/compose/) (incluido en Docker Desktop)
-- Git
-
-#### Guía de Instalación
 
 **1. Clonar el repositorio**
 
@@ -110,358 +63,64 @@ git clone https://github.com/JuniorSebastian/laravel-orders-api.git
 cd laravel-orders-api
 ```
 
-**2. Levantar los contenedores**
+**2. Instalar dependencias**
 
 ```bash
-docker compose up -d
-```
-
-Este comando:
-- Construye la imagen PHP 8.2-FPM con todas las extensiones necesarias
-- Levanta 3 contenedores: `app` (Laravel), `web` (Nginx), `postgres` (PostgreSQL)
-- Crea la red `laravel` para comunicación entre contenedores
-- Crea el volumen persistente `postgres_data` para la base de datos
-
-**Salida esperada:**
-```
-[+] Running 4/4
- Network laravel-orders-payments_laravel  Created
- Container laravel-postgres               Started
- Container laravel-app                    Started
- Container laravel-nginx                  Started
-```
-
-**3. Verificar que los contenedores están corriendo**
-
-```bash
-docker compose ps
-```
-
-**Salida esperada:**
-```
-NAME              IMAGE                    STATUS    PORTS
-laravel-app       laravel-orders-api-app   Up        9000/tcp
-laravel-nginx     nginx:alpine             Up        0.0.0.0:8000->80/tcp
-laravel-postgres  postgres:15-alpine       Up        0.0.0.0:5432->5432/tcp
-```
-
-**4. Copiar archivo de configuración**
-
-```bash
-# Windows (PowerShell)
-Copy-Item .env.docker .env
-
-# Linux/Mac
-cp .env.docker .env
-```
-
-El archivo `.env.docker` ya está configurado para el entorno Docker:
-- `DB_HOST=postgres` (nombre del servicio en docker-compose)
-- `SESSION_DRIVER=cookie` (para evitar dependencia de tabla sessions)
-- Todas las credenciales pre-configuradas
-
-**5. Ejecutar migraciones de base de datos**
-
-```bash
-docker compose exec app php artisan migrate
-```
-
-Esto crea las tablas: `users`, `cache`, `jobs`, `orders`, `payments`
-
-**6. Verificar instalación con tests**
-
-```bash
-docker compose exec app php artisan test
-```
-
-**Resultado esperado:**
-```
-   PASS  Tests\Feature\OrderTest
-  can create order
-  can list orders
-  can show order with payments
-  order validation fails without required fields
-
-   PASS  Tests\Feature\PaymentTest
-  successful payment updates order to paid
-  failed payment updates order to failed
-  failed order can receive new payment attempt
-  paid order cannot receive new payment
-  payment validation fails without order id
-
-  Tests:  11 passed (48 assertions)
-  Duration: 7.64s
-```
-
-#### Acceso a la Aplicación
-
-| Servicio | URL/Puerto | Descripción |
-|----------|------------|-------------|
-| **API REST** | http://localhost:8000 | Endpoints de la API |
-| **PostgreSQL** | localhost:5432 | Base de datos |
-| **PgAdmin/DBeaver** | Host: localhost<br>Puerto: 5432<br>Usuario: `postgres`<br>Password: `root`<br>DB: `orders_payments` | Conexión externa |
-
-#### Comandos Docker Útiles
-
-**Ver logs en tiempo real:**
-```bash
-# Todos los servicios
-docker compose logs -f
-
-# Solo Laravel
-docker compose logs -f app
-
-# Solo Nginx
-docker compose logs -f web
-
-# Solo PostgreSQL
-docker compose logs -f postgres
-```
-
-**Entrar a un contenedor (bash/shell):**
-```bash
-# Contenedor Laravel (para ejecutar comandos artisan)
-docker compose exec app bash
-
-# Dentro del contenedor puedes ejecutar:
-php artisan route:list
-php artisan migrate:status
-php artisan tinker
-```
-
-**Ejecutar comandos sin entrar al contenedor:**
-```bash
-# Listar rutas
-docker compose exec app php artisan route:list
-
-# Crear migración
-docker compose exec app php artisan make:migration create_example_table
-
-# Ejecutar tests
-docker compose exec app php artisan test
-
-# Refrescar base de datos y seeders
-docker compose exec app php artisan migrate:fresh --seed
-```
-
-**Reiniciar servicios:**
-```bash
-# Reiniciar todos los contenedores
-docker compose restart
-
-# Reiniciar solo Laravel
-docker compose restart app
-
-# Reiniciar solo Nginx
-docker compose restart web
-```
-
-**Detener contenedores (sin borrar volúmenes):**
-```bash
-docker compose stop
-```
-
-**Levantar contenedores detenidos:**
-```bash
-docker compose start
-```
-
-**Detener y eliminar contenedores:**
-```bash
-docker compose down
-```
-
-**Detener, eliminar contenedores y volúmenes (⚠️ BORRA LA BASE DE DATOS):**
-```bash
-docker compose down -v
-```
-
-**Reconstruir imágenes (después de cambios en Dockerfile):**
-```bash
-docker compose up -d --build
-```
-
-**Ver estado de recursos Docker:**
-```bash
-# Contenedores en ejecución
-docker ps
-
-# Todos los contenedores (incluidos detenidos)
-docker ps -a
-
-# Imágenes construidas
-docker images
-
-# Volúmenes creados
-docker volume ls
-
-# Redes creadas
-docker network ls
-```
-
-#### Arquitectura Docker
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Docker Host                          │
-│                                                          │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │              Red: laravel (bridge)                │  │
-│  │                                                    │  │
-│  │  ┌───────────────┐   ┌───────────────┐          │  │
-│  │  │   Nginx       │   │   PHP-FPM     │          │  │
-│  │  │   (web)       │   │   (app)       │          │  │
-│  │  │               │   │               │          │  │
-│  │  │  Escucha:80  │◄──┤ Laravel 11    │          │  │
-│  │  │  Sirve:      │   │ PHP 8.2       │          │  │
-│  │  │  /public     │   │               │          │  │
-│  │  └───────────────┘   └───────┬───────┘          │  │
-│  │         │                    │                   │  │
-│  │         │                    │                   │  │
-│  │         │                    ▼                   │  │
-│  │         │            ┌───────────────┐           │  │
-│  │         │            │  PostgreSQL   │           │  │
-│  │         │            │  (postgres)   │           │  │
-│  │         │            │               │           │  │
-│  │         │            │  DB: orders_  │           │  │
-│  │         │            │      payments │           │  │
-│  │         │            │  Puerto: 5432 │           │  │
-│  │         │            └───────────────┘           │  │
-│  │         │                    │                   │  │
-│  └─────────┼────────────────────┼───────────────────┘  │
-│            │                    │                       │
-│            │                    │                       │
-│     Puerto 8000           postgres_data                │
-│         ▲                     (volumen)                │
-└─────────┼───────────────────────────────────────────────┘
-          │
-     localhost:8000
-```
-
-**Descripción de servicios:**
-
-| Servicio | Imagen | Rol | Puertos |
-|----------|--------|-----|---------|
-| **app** | PHP 8.2-FPM | Ejecuta código Laravel, procesa requests PHP | 9000 (interno) |
-| **web** | Nginx Alpine | Servidor HTTP, sirve archivos estáticos, proxy a PHP-FPM | 8000 → 80 |
-| **postgres** | PostgreSQL 15 Alpine | Base de datos relacional | 5432 → 5432 |
-
-#### Solución de Problemas Docker
-
-**Problema: Puerto 8000 en uso**
-```bash
-# Windows - Ver qué está usando el puerto
-netstat -ano | findstr :8000
-
-# Matar proceso
-taskkill /PID <PID> /F
-
-# O cambiar puerto en docker-compose.yml
-ports:
-  - "8080:80"  # Usa puerto 8080 en lugar de 8000
-```
-
-**Problema: Permisos en Linux/Mac**
-```bash
-# Dar permisos a storage y bootstrap/cache
-docker compose exec app chmod -R 777 storage bootstrap/cache
-```
-
-**Problema: Migraciones fallan**
-```bash
-# Verificar conexión a PostgreSQL
-docker compose exec postgres psql -U postgres -d orders_payments -c "\dt"
-
-# Refrescar migraciones
-docker compose exec app php artisan migrate:fresh
-```
-
-**Problema: Composer dependencies desactualizadas**
-```bash
-# Instalar dependencias dentro del contenedor
-docker compose exec app composer install
-
-# O actualizar
-docker compose exec app composer update
-```
-
-**Problema: Limpiar todo y empezar de nuevo**
-```bash
-# Detener y eliminar todo
-docker compose down -v
-
-# Eliminar imágenes construidas
-docker rmi laravel-orders-api-app
-
-# Levantar de nuevo
-docker compose up -d --build
-docker compose exec app php artisan migrate
-```
-
-#### Ver Documentación Completa
-
-Para más detalles sobre la arquitectura Docker, configuración avanzada y troubleshooting:
-- [DOCKER.md](DOCKER.md) - Documentación completa de Docker
-
----
-
-### Opción 2: Instalación Local
-
-**Requisitos:**
-- PHP 8.2+
-- PostgreSQL 13+
-- Composer 2.0+
-
-**Pasos:**
-
-```bash
-# 1. Clonar repositorio
-git clone https://github.com/JuniorSebastian/laravel-orders-api.git
-cd laravel-orders-api
-
-# 2. Instalar dependencias
 composer install
-
-# 3. Configurar .env
-cp .env.example .env
-# Editar .env con tus credenciales de PostgreSQL
-
-# 4. Crear base de datos
-psql -U postgres
-CREATE DATABASE orders_payments;
-\q
-
-# 5. Generar key y ejecutar migraciones
-php artisan key:generate
-php artisan migrate
-
-# 6. Iniciar servidor
-php artisan serve
-# http://127.0.0.1:8000
-
-# 7. Ejecutar tests
-php artisan test
 ```
 
-**Configuración .env para instalación local:**
+**3. Configurar entorno**
+
+```bash
+cp .env.example .env
+```
+
+Edita el archivo `.env` con tus credenciales de PostgreSQL:
 
 ```env
-APP_NAME=Laravel
-APP_ENV=local
-APP_KEY=base64:f8b2WFd6Z7lEwMLRjJYxL9hTHqDNA+x+rRdlh5/AnqM=
-APP_DEBUG=true
-APP_URL=http://localhost
-
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=orders_payments
 DB_USERNAME=postgres
-DB_PASSWORD=root
+DB_PASSWORD=tu_password
 
 PAYMENT_GATEWAY_URL=https://reqres.in/api
-PAYMENT_GATEWAY_API_KEY=reqres-free-v1
 ```
+
+**4. Crear base de datos**
+
+```bash
+# Conectar a PostgreSQL
+psql -U postgres
+
+# Crear base de datos
+CREATE DATABASE orders_payments;
+\q
+```
+
+**5. Generar key y ejecutar migraciones**
+
+```bash
+php artisan key:generate
+php artisan migrate
+```
+
+**6. Iniciar servidor**
+
+```bash
+php artisan serve
+```
+
+La API estará disponible en: `http://127.0.0.1:8000`
+
+**7. Verificar instalación**
+
+```bash
+php artisan test
+```
+
+Deberías ver 11 tests pasando correctamente.
 
 ---
 
@@ -504,10 +163,6 @@ Obtiene la lista completa de pedidos con sus pagos asociados.
 
 **Request:**
 ```bash
-# Con Docker
-curl http://localhost:8000/api/orders
-
-# Sin Docker
 curl http://127.0.0.1:8000/api/orders
 ```
 
@@ -544,7 +199,7 @@ Crea un nuevo pedido en estado `pending`.
 
 **Request:**
 ```bash
-curl -X POST http://localhost:8000/api/orders \
+curl -X POST http://127.0.0.1:8000/api/orders \
   -H "Content-Type: application/json" \
   -d '{
     "customer_name": "Juan Pérez",
@@ -591,7 +246,7 @@ Obtiene los detalles de un pedido específico con todos sus intentos de pago.
 
 **Request:**
 ```bash
-curl http://localhost:8000/api/orders/1
+curl http://127.0.0.1:8000/api/orders/1
 ```
 
 **Response:** `200 OK`
@@ -633,7 +288,7 @@ Procesa un pago para un pedido. Integra con API externa para validación.
 
 **Request:**
 ```bash
-curl -X POST http://localhost:8000/api/payments \
+curl -X POST http://127.0.0.1:8000/api/payments \
   -H "Content-Type: application/json" \
   -d '{"order_id": 1}'
 ```
@@ -836,12 +491,6 @@ enum OrderStatus: string {
 
 ### Ejecutar Tests
 
-**Con Docker (recomendado):**
-```bash
-docker compose exec app php artisan test
-```
-
-**Sin Docker:**
 ```bash
 php artisan test
 ```
@@ -868,7 +517,7 @@ php artisan test
   payment validation fails without order id
 
   Tests:  11 passed (48 assertions)
-  Duration: 7.64s (Docker) / 1.63s (local)
+  Duration: 1.63s
 ```
 
 ### Cobertura
@@ -1074,30 +723,134 @@ SESSION_LIFETIME=120
 
 ---
 
-## Mejores Prácticas y Recomendaciones
+## Despliegue con Docker
 
-### Para Desarrollo
+Si prefieres no instalar PHP, PostgreSQL y Composer localmente, puedes usar Docker para ejecutar todo el proyecto en contenedores aislados.
 
-**1. Usar Docker para desarrollo local**
+### Requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 20.10+
+- Docker Compose 2.0+
+- Git
+
+### Instalación Rápida
+
+**1. Clonar el repositorio**
+
 ```bash
-# Siempre trabajar con Docker para mantener consistencia
+git clone https://github.com/JuniorSebastian/laravel-orders-api.git
+cd laravel-orders-api
+```
+
+**2. Levantar los contenedores**
+
+```bash
 docker compose up -d
+```
+
+Este comando construye y levanta 3 contenedores:
+- `app` (PHP 8.2-FPM con Laravel)
+- `web` (Nginx en puerto 8000)
+- `postgres` (PostgreSQL 15)
+
+**3. Configurar y migrar**
+
+```bash
+# Windows
+Copy-Item .env.docker .env
+
+# Linux/Mac
+cp .env.docker .env
+
+# Ejecutar migraciones
 docker compose exec app php artisan migrate
 ```
 
-**2. Ejecutar tests antes de commit**
+**4. Probar la instalación**
+
 ```bash
 docker compose exec app php artisan test
 ```
 
-**3. Verificar migraciones pendientes**
+La API estará disponible en: `http://localhost:8000`
+
+### Comandos Docker Útiles
+
+**Ver logs:**
 ```bash
-docker compose exec app php artisan migrate:status
+docker compose logs -f app
 ```
 
-**4. Usar Tinker para explorar modelos**
+**Ejecutar comandos artisan:**
 ```bash
+docker compose exec app php artisan route:list
 docker compose exec app php artisan tinker
+```
+
+**Reiniciar servicios:**
+```bash
+docker compose restart
+```
+
+**Detener contenedores:**
+```bash
+docker compose down
+```
+
+**Detener y eliminar datos:**
+```bash
+docker compose down -v
+```
+
+### Arquitectura Docker
+
+```
+┌─────────────────────────────────────────┐
+│         Docker Host                      │
+│                                          │
+│  ┌────────────────────────────────────┐ │
+│  │  Nginx (puerto 8000)               │ │
+│  │       ↓                             │ │
+│  │  PHP-FPM (Laravel 11)              │ │
+│  │       ↓                             │ │
+│  │  PostgreSQL (puerto 5432)          │ │
+│  └────────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+**Conexión a PostgreSQL desde herramientas externas:**
+```
+Host: localhost
+Puerto: 5432
+Usuario: postgres
+Contraseña: root
+Base de datos: orders_payments
+```
+
+### Documentación Completa de Docker
+
+Para más detalles sobre la configuración de Docker:
+- [DOCKER.md](DOCKER.md) - Guía completa de Docker
+
+---
+
+## Mejores Prácticas y Recomendaciones
+
+### Para Desarrollo
+
+**1. Ejecutar tests antes de commit**
+```bash
+php artisan test
+```
+
+**2. Verificar migraciones pendientes**
+```bash
+php artisan migrate:status
+```
+
+**3. Usar Tinker para explorar modelos**
+```bash
+php artisan tinker
 
 >>> App\Models\Order::with('payments')->get()
 >>> App\Enums\OrderStatus::cases()
@@ -1201,19 +954,18 @@ Order::where('status', $request->status)
 
 **Síntoma:**
 ```
-SQLSTATE[08006] [7] could not translate host name "postgres" to address
+SQLSTATE[08006] [7] Connection refused
 ```
 
 **Solución:**
 ```bash
-# Verificar que el contenedor postgres está corriendo
-docker compose ps
+# Verificar que PostgreSQL está corriendo
+sudo systemctl status postgresql  # Linux
+brew services list  # Mac
 
-# Si está detenido, levantar servicios
-docker compose up -d
-
-# Verificar logs de PostgreSQL
-docker compose logs postgres
+# Iniciar PostgreSQL si está detenido
+sudo systemctl start postgresql  # Linux
+brew services start postgresql  # Mac
 ```
 
 ---
@@ -1222,45 +974,19 @@ docker compose logs postgres
 
 **Síntoma:**
 ```
-SQLSTATE[08006] Connection refused
+SQLSTATE[08006] Database does not exist
 ```
 
 **Solución:**
 ```bash
-# Ejecutar migraciones en entorno de testing
-docker compose exec app php artisan migrate --env=testing
+# Crear la base de datos
+psql -U postgres
+CREATE DATABASE orders_payments;
+\q
 
-# O refrescar migraciones antes de tests
-docker compose exec app php artisan migrate:fresh
-docker compose exec app php artisan test
-```
-
----
-
-### Problema: "Port 8000 already in use"
-
-**Síntoma:**
-```
-Error response from daemon: Ports are not available: exposing port TCP 0.0.0.0:8000
-```
-
-**Solución (Windows):**
-```powershell
-# Ver qué proceso usa el puerto
-netstat -ano | findstr :8000
-
-# Matar el proceso
-taskkill /PID <PID> /F
-
-# O cambiar puerto en docker-compose.yml
-```
-
-**Solución alternativa:**
-```yaml
-# docker-compose.yml
-web:
-  ports:
-    - "8080:80"
+# Ejecutar migraciones
+php artisan migrate
+php artisan test
 ```
 
 ---
@@ -1275,8 +1001,10 @@ The stream or file "storage/logs/laravel.log" could not be opened
 **Solución:**
 ```bash
 # Dar permisos de escritura
-docker compose exec app chmod -R 775 storage bootstrap/cache
-docker compose exec app chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# En algunos casos puede ser necesario
+sudo chown -R $USER:www-data storage bootstrap/cache
 ```
 
 ---
@@ -1290,11 +1018,11 @@ Class 'Illuminate\Foundation\Application' not found
 
 **Solución:**
 ```bash
-# Reinstalar dependencias dentro del contenedor
-docker compose exec app composer install
+# Reinstalar dependencias
+composer install
 
 # O actualizar a últimas versiones
-docker compose exec app composer update
+composer update
 ```
 
 ---
@@ -1307,13 +1035,13 @@ El código editado no surte efecto en la aplicación.
 **Solución:**
 ```bash
 # Limpiar cachés de Laravel
-docker compose exec app php artisan cache:clear
-docker compose exec app php artisan config:clear
-docker compose exec app php artisan route:clear
-docker compose exec app php artisan view:clear
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
 
-# Reiniciar contenedores
-docker compose restart app
+# Reiniciar servidor
+php artisan serve
 ```
 
 ---
@@ -1327,16 +1055,16 @@ docker compose restart app
 
 **Causas posibles:**
 1. **Header faltante:** Agregar `Accept: application/json`
-2. **Error 500:** Revisar logs con `docker compose logs app`
+2. **Error 500:** Revisar logs en `storage/logs/laravel.log`
 3. **Ruta incorrecta:** Verificar que la URL incluya `/api/`
 
 **Solución:**
 ```bash
 # Agregar header Accept
-curl -H "Accept: application/json" http://localhost:8000/api/orders
+curl -H "Accept: application/json" http://127.0.0.1:8000/api/orders
 
 # Ver logs de errores
-docker compose logs app -f
+tail -f storage/logs/laravel.log
 ```
 
 ---
@@ -1364,29 +1092,29 @@ Las rutas API no requieren CSRF token. Verificar que:
 
 ```bash
 # 1. Crear controlador
-docker compose exec app php artisan make:controller Api/RefundController
+php artisan make:controller Api/RefundController
 
 # 2. Crear request de validación
-docker compose exec app php artisan make:request StoreRefundRequest
+php artisan make:request StoreRefundRequest
 
 # 3. Crear resource para respuesta
-docker compose exec app php artisan make:resource RefundResource
+php artisan make:resource RefundResource
 
 # 4. Agregar ruta en routes/api.php
 Route::post('/refunds', [RefundController::class, 'store']);
 
 # 5. Crear test
-docker compose exec app php artisan make:test RefundTest
+php artisan make:test RefundTest
 ```
 
-### ¿Cómo conecto a PostgreSQL desde fuera de Docker?
+### ¿Cómo conecto a PostgreSQL con herramientas externas?
 
-**Credenciales (desde .env.docker):**
+**Credenciales de conexión:**
 ```
-Host: localhost
+Host: localhost (o 127.0.0.1)
 Puerto: 5432
 Usuario: postgres
-Contraseña: root
+Contraseña: tu_password
 Base de datos: orders_payments
 ```
 
@@ -1418,13 +1146,13 @@ kubectl apply -f k8s/
 
 ```bash
 # Backup manual
-docker compose exec postgres pg_dump -U postgres orders_payments > backup.sql
+pg_dump -U postgres orders_payments > backup.sql
 
 # Restore
-docker compose exec -T postgres psql -U postgres orders_payments < backup.sql
+psql -U postgres orders_payments < backup.sql
 
 # Backup con timestamp
-docker compose exec postgres pg_dump -U postgres orders_payments > backup-$(date +%Y%m%d).sql
+pg_dump -U postgres orders_payments > backup-$(date +%Y%m%d).sql
 ```
 
 ### ¿Cómo ver queries SQL ejecutadas?
