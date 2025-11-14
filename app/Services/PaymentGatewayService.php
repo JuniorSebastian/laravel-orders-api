@@ -26,18 +26,26 @@ class PaymentGatewayService
     public function processPayment(float $amount, int $orderId): array
     {
         try {
-            // Simulación: POST a reqres.in siempre retorna 201
+            // Simulación: POST a reqres.in retorna 201 con API key
             // Usaremos el endpoint /users que acepta cualquier dato
             $response = Http::timeout(10)
-                ->withHeaders(['x-api-key' => $this->apiKey])
+                ->withoutVerifying() // Deshabilitar verificación SSL en desarrollo
+                ->withHeaders([
+                    'x-api-key' => $this->apiKey,
+                    'Accept' => 'application/json',
+                ])
                 ->post("{$this->apiUrl}/users", [
+                    'name' => "Payment Order {$orderId}",
+                    'job' => 'payment',
                     'amount' => $amount,
                     'order_id' => $orderId,
                     'currency' => 'USD',
                 ]);
 
-            // Simulamos éxito si el status es 201
-            $success = $response->successful() && $response->status() === 201;
+            // Simulamos éxito si el status es 201 y tiene respuesta válida
+            $success = $response->successful() && 
+                       $response->status() === 201 && 
+                       $response->json('id') !== null;
 
             $result = [
                 'success' => $success,

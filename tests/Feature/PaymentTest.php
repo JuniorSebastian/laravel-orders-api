@@ -54,10 +54,10 @@ class PaymentTest extends TestCase
 
     public function test_failed_payment_updates_order_to_failed(): void
     {
-        // Mock de API externa que falla
-        Http::fake([
-            'https://reqres.in/api/users' => Http::response([], 500),
-        ]);
+        // Mock de API externa que falla completamente (excepción de red)
+        Http::fake(function () {
+            throw new \Exception('Connection timeout');
+        });
 
         $order = Order::factory()->create([
             'status' => 'pending',
@@ -72,6 +72,8 @@ class PaymentTest extends TestCase
 
         $order->refresh();
         $this->assertEquals('failed', $order->status);
+        $this->assertEquals(1, $order->payments()->count());
+        $this->assertEquals('failed', $order->payments()->first()->status);
     }
 
     public function test_failed_order_can_receive_new_payment_attempt(): void
