@@ -1,4 +1,4 @@
-# 🚀 API REST - Pedidos y Pagos
+# API REST - Pedidos y Pagos
 
 API REST robusta para gestión de pedidos y procesamiento de pagos con integración a gateway externo. Construida con **Laravel 11**, aplicando **principios SOLID** y **Clean Architecture**.
 
@@ -10,12 +10,12 @@ API REST robusta para gestión de pedidos y procesamiento de pagos con integraci
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
-- [Características](#-características)
-- [Demo Rápida](#-demo-rápida-5-minutos)
+- [Características](#características)
+- [Demo Rápida](#demo-rápida-5-minutos)
 - [Instalación](#instalación)
-  - [Con Docker (Recomendado)](#opción-1-con-docker-recomendado-)
+  - [Con Docker (Recomendado)](#opción-1-con-docker-recomendado)
   - [Sin Docker](#opción-2-instalación-local)
 - [API Endpoints](#api-endpoints)
 - [Arquitectura](#arquitectura)
@@ -26,22 +26,22 @@ API REST robusta para gestión de pedidos y procesamiento de pagos con integraci
 
 ---
 
-## ✨ Características
+## Características
 
-✅ **CRUD Completo de Pedidos** - Crear, listar y consultar órdenes  
-✅ **Procesamiento de Pagos** - Integración con gateway externo (ReqRes.in)  
-✅ **Gestión de Estados** - Máquina de estados (pending → paid/failed)  
-✅ **Reintentos de Pago** - Pedidos fallidos pueden reintentar  
-✅ **SOLID Principles** - Código mantenible y extensible  
-✅ **Clean Architecture** - Separación de capas (Controller → Service → Model)  
-✅ **Docker Ready** - Entorno reproducible con 3 contenedores  
-✅ **Testing Completo** - 11 tests, 48 assertions, 100% endpoints cubiertos  
-✅ **API Documentation** - Colección Postman incluida  
-✅ **Type Safety** - PHP 8.2+ Enums tipados  
+CRUD Completo de Pedidos - Crear, listar y consultar órdenes  
+Procesamiento de Pagos - Integración con gateway externo (ReqRes.in)  
+Gestión de Estados - Máquina de estados (pending → paid/failed)  
+Reintentos de Pago - Pedidos fallidos pueden reintentar  
+SOLID Principles - Código mantenible y extensible  
+Clean Architecture - Separación de capas (Controller → Service → Model)  
+Docker Ready - Entorno reproducible con 3 contenedores  
+Testing Completo - 11 tests, 48 assertions, 100% endpoints cubiertos  
+API Documentation - Colección Postman incluida  
+Type Safety - PHP 8.2+ Enums tipados  
 
 ---
 
-## ⚡ Demo Rápida (5 minutos)
+## Demo Rápida (5 minutos)
 
 ```bash
 # 1. Clonar y levantar con Docker
@@ -68,13 +68,13 @@ curl -X POST http://localhost:8000/api/payments \
   -d '{"order_id":1}'
 ```
 
-**Resultado:** Orden creada y pago procesado exitosamente ✅
+**Resultado:** Orden creada y pago procesado exitosamente.
 
 Importa la colección de Postman desde `/postman/Laravel_Orders_API.postman_collection.json` para probar todos los endpoints.
 
 ---
 
-## 📦 Requisitos
+## Requisitos
 
 ### Con Docker (Recomendado)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) 20.10+
@@ -91,7 +91,7 @@ Importa la colección de Postman desde `/postman/Laravel_Orders_API.postman_coll
 
 ## Instalación
 
-### Opción 1: Con Docker (Recomendado) 🐳
+### Opción 1: Con Docker (Recomendado)
 
 Docker proporciona un entorno completamente aislado y reproducible. **No necesitas instalar PHP, PostgreSQL ni Composer en tu máquina.**
 
@@ -125,10 +125,10 @@ Este comando:
 **Salida esperada:**
 ```
 [+] Running 4/4
- ✔ Network laravel-orders-payments_laravel  Created
- ✔ Container laravel-postgres               Started
- ✔ Container laravel-app                    Started
- ✔ Container laravel-nginx                  Started
+ Network laravel-orders-payments_laravel  Created
+ Container laravel-postgres               Started
+ Container laravel-app                    Started
+ Container laravel-nginx                  Started
 ```
 
 **3. Verificar que los contenedores están corriendo**
@@ -177,17 +177,17 @@ docker compose exec app php artisan test
 **Resultado esperado:**
 ```
    PASS  Tests\Feature\OrderTest
-  ✓ can create order
-  ✓ can list orders
-  ✓ can show order with payments
-  ✓ order validation fails without required fields
+  can create order
+  can list orders
+  can show order with payments
+  order validation fails without required fields
 
    PASS  Tests\Feature\PaymentTest
-  ✓ successful payment updates order to paid
-  ✓ failed payment updates order to failed
-  ✓ failed order can receive new payment attempt
-  ✓ paid order cannot receive new payment
-  ✓ payment validation fails without order id
+  successful payment updates order to paid
+  failed payment updates order to failed
+  failed order can receive new payment attempt
+  paid order cannot receive new payment
+  payment validation fails without order id
 
   Tests:  11 passed (48 assertions)
   Duration: 7.64s
@@ -478,10 +478,10 @@ El proyecto incluye una colección de Postman con todos los endpoints configurad
 4. La colección aparecerá con 4 requests pre-configurados
 
 **Contenido de la colección:**
-- ✅ **GET** Lista de Órdenes - `/api/orders`
-- ✅ **POST** Crear Orden - `/api/orders`
-- ✅ **GET** Ver Orden - `/api/orders/{id}`
-- ✅ **POST** Procesar Pago - `/api/payments`
+- **GET** Lista de Órdenes - `/api/orders`
+- **POST** Crear Orden - `/api/orders`
+- **GET** Ver Orden - `/api/orders/{id}`
+- **POST** Procesar Pago - `/api/payments`
 
 **Variables configuradas:**
 - `base_url`: `http://localhost:8000`
@@ -498,7 +498,7 @@ El proyecto incluye una colección de Postman con todos los endpoints configurad
 
 **Base URL:** `http://localhost:8000/api`
 
-### 📋 GET /api/orders
+### GET /api/orders
 
 Obtiene la lista completa de pedidos con sus pagos asociados.
 
@@ -538,7 +538,7 @@ curl http://127.0.0.1:8000/api/orders
 
 ---
 
-### ➕ POST /api/orders
+### POST /api/orders
 
 Crea un nuevo pedido en estado `pending`.
 
@@ -585,7 +585,7 @@ curl -X POST http://localhost:8000/api/orders \
 
 ---
 
-### 🔍 GET /api/orders/{id}
+### GET /api/orders/{id}
 
 Obtiene los detalles de un pedido específico con todos sus intentos de pago.
 
@@ -627,7 +627,7 @@ curl http://localhost:8000/api/orders/1
 
 ---
 
-### 💳 POST /api/payments
+### POST /api/payments
 
 Procesa un pago para un pedido. Integra con API externa para validación.
 
@@ -710,11 +710,11 @@ curl -X POST http://localhost:8000/api/payments \
 ```
 
 **Reglas de transición:**
-- `pending` → `paid`: Cuando el primer pago es exitoso
-- `pending` → `failed`: Cuando el primer pago falla
-- `failed` → `paid`: Cuando un reintento de pago es exitoso
-- `failed` → `failed`: Cuando un reintento de pago falla (actualiza contador)
-- `paid` → **NINGUNO**: Estado terminal, no permite más cambios
+- pending → paid: Cuando el primer pago es exitoso
+- pending → failed: Cuando el primer pago falla
+- failed → paid: Cuando un reintento de pago es exitoso
+- failed → failed: Cuando un reintento de pago falla (actualiza contador)
+- paid → NINGUNO: Estado terminal, no permite más cambios
 
 **Contador de intentos:**
 - Se incrementa con cada intento de pago (exitoso o fallido)
@@ -756,9 +756,9 @@ app/
 ### Principios SOLID
 
 **Single Responsibility:** Cada clase tiene una responsabilidad única.
-- `OrderController` → Maneja HTTP
-- `OrderPaymentService` → Lógica de negocio
-- `PaymentGatewayService` → Integración externa
+- OrderController → Maneja HTTP
+- OrderPaymentService → Lógica de negocio
+- PaymentGatewayService → Integración externa
 
 **Open/Closed:** Extensible sin modificar código existente.
 ```php
@@ -807,10 +807,10 @@ $this->app->bind(
 ### Gestión de Estados
 
 ```
-PENDING → [Pago Exitoso] → PAID (final)
-PENDING → [Pago Fallido] → FAILED (permite reintentos)
-FAILED  → [Pago Exitoso] → PAID (final)
-PAID    → [Intento] → ERROR 422
+PENDING -> [Pago Exitoso] -> PAID (final)
+PENDING -> [Pago Fallido] -> FAILED (permite reintentos)
+FAILED  -> [Pago Exitoso] -> PAID (final)
+PAID    -> [Intento] -> ERROR 422
 ```
 
 Implementado con Enums tipados (PHP 8.1+):
@@ -849,23 +849,23 @@ php artisan test
 **Resultado esperado:**
 ```
    PASS  Tests\Unit\ExampleTest
-  ✓ that true is true
+  that true is true
 
    PASS  Tests\Feature\ExampleTest
-  ✓ the application returns a successful response
+  the application returns a successful response
 
    PASS  Tests\Feature\OrderTest
-  ✓ can create order
-  ✓ can list orders
-  ✓ can show order with payments
-  ✓ order validation fails without required fields
+  can create order
+  can list orders
+  can show order with payments
+  order validation fails without required fields
 
    PASS  Tests\Feature\PaymentTest
-  ✓ successful payment updates order to paid
-  ✓ failed payment updates order to failed
-  ✓ failed order can receive new payment attempt
-  ✓ paid order cannot receive new payment
-  ✓ payment validation fails without order id
+  successful payment updates order to paid
+  failed payment updates order to failed
+  failed order can receive new payment attempt
+  paid order cannot receive new payment
+  payment validation fails without order id
 
   Tests:  11 passed (48 assertions)
   Duration: 7.64s (Docker) / 1.63s (local)
@@ -1009,9 +1009,9 @@ DB::transaction(function () use ($order, $payment) {
 **SSL:** Desactivado en desarrollo (activar en producción)
 
 **Alternativas en producción:**
-- Stripe: `PaymentGatewayInterface` → `StripeGateway`
-- PayPal: `PaymentGatewayInterface` → `PayPalGateway`
-- MercadoPago: `PaymentGatewayInterface` → `MercadoPagoGateway`
+- Stripe: PaymentGatewayInterface -> StripeGateway
+- PayPal: PaymentGatewayInterface -> PayPalGateway
+- MercadoPago: PaymentGatewayInterface -> MercadoPagoGateway
 
 ### Session Driver: Cookie
 **Razón:** Evitar dependencia de tabla `sessions` en Docker
@@ -1109,10 +1109,10 @@ docker compose exec app php artisan tinker
 ```env
 APP_ENV=production
 APP_DEBUG=false
-APP_KEY=base64:... # Generar con php artisan key:generate
+APP_KEY=base64:...
 DB_CONNECTION=pgsql
 DB_HOST=<production-host>
-SESSION_DRIVER=database # Cambiar a database o redis
+SESSION_DRIVER=database
 PAYMENT_GATEWAY_URL=<production-gateway>
 ```
 
@@ -1135,7 +1135,7 @@ composer install --optimize-autoloader --no-dev
 ```php
 // En PaymentGatewayService.php, activar verificación SSL
 Http::timeout(10)
-    ->withOptions(['verify' => true]) // Activar en producción
+    ->withOptions(['verify' => true])
     ->post($url, $data);
 ```
 
@@ -1176,10 +1176,8 @@ $this->app->bind(PaymentGatewayInterface::class, StripeGateway::class);
 ```
 
 **4. Webhooks para notificaciones asíncronas**
-```php
-// POST /api/webhooks/payment
-// Recibir confirmaciones del gateway de pago
-```
+
+POST /api/webhooks/payment - Recibir confirmaciones del gateway de pago
 
 **5. Paginación para listados grandes**
 ```php
@@ -1262,7 +1260,7 @@ taskkill /PID <PID> /F
 # docker-compose.yml
 web:
   ports:
-    - "8080:80"  # Cambiar a puerto 8080
+    - "8080:80"
 ```
 
 ---
