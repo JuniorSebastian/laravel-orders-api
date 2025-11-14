@@ -2,6 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\PaymentGatewayInterface;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
+use App\Exceptions\PaymentProcessingException;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
@@ -9,20 +13,23 @@ use Illuminate\Support\Facades\DB;
 class OrderPaymentService
 {
     public function __construct(
-        private PaymentGatewayService $paymentGateway
+        private PaymentGatewayInterface $paymentGateway
     ) {}
 
     /**
-     * Procesa un pago para un pedido
+     * Process a payment for an order
      * 
-     * @param Order $order
-     * @return Payment
-     * @throws \Exception
+     * @param Order $order The order to process payment for
+     * @return Payment The created payment record
+     * @throws PaymentProcessingException If order cannot receive payments
      */
     public function processPayment(Order $order): Payment
     {
         if (!$order->canReceivePayment()) {
-            throw new \Exception("Order #{$order->id} cannot receive payments. Current status: {$order->status}");
+            throw PaymentProcessingException::orderCannotReceivePayment(
+                $order->id, 
+                $order->status
+            );
         }
 
         return DB::transaction(function () use ($order) {
@@ -32,20 +39,18 @@ class OrderPaymentService
                 $order->id
             );
 
-            // Crear el registro de pago
+            // Create payment record
             $payment = Payment::create([
                 'order_id' => $order->id,
                 'amount' => $order->total_amount,
-                'status' => $result['success'] ? 'success' : 'failed',
+                'status' => $result['success'] ? PaymentStatus::SUCCESS : PaymentStatus::FAILED,
                 'response' => json_encode($result),
             ]);
 
-            // Actualizar el estado del pedido
-            if ($result['success']) {
-                $order->update(['status' => 'paid']);
-            } else {
-                $order->update(['status' => 'failed']);
-            }
+            // Update order status based on payment result
+            $order->update([
+                'status' => $result['success'] ? OrderStatus::PAID : OrderStatus::FAILED
+            ]);
 
             return $payment;
         });

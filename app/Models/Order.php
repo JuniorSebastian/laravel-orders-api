@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'customer_name',
         'total_amount',
@@ -21,6 +23,7 @@ class Order extends Model
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'status' => OrderStatus::class,
     ];
 
     public function payments(): HasMany
@@ -28,18 +31,13 @@ class Order extends Model
         return $this->hasMany(Payment::class);
     }
 
-    public function isPending(): bool
-    {
-        return $this->status === 'pending';
-    }
-
-    public function isFailed(): bool
-    {
-        return $this->status === 'failed';
-    }
-
     public function canReceivePayment(): bool
     {
-        return $this->isPending() || $this->isFailed();
+        return $this->status->canReceivePayment();
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->status->isPaid();
     }
 }

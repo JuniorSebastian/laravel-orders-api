@@ -48,7 +48,7 @@ class PaymentTest extends TestCase
             ]);
 
         $order->refresh();
-        $this->assertEquals('paid', $order->status);
+        $this->assertEquals(\App\Enums\OrderStatus::PAID, $order->status);
         $this->assertEquals(1, $order->payments->count());
     }
 
@@ -71,9 +71,9 @@ class PaymentTest extends TestCase
         $response->assertStatus(201);
 
         $order->refresh();
-        $this->assertEquals('failed', $order->status);
+        $this->assertEquals(\App\Enums\OrderStatus::FAILED, $order->status);
         $this->assertEquals(1, $order->payments()->count());
-        $this->assertEquals('failed', $order->payments()->first()->status);
+        $this->assertEquals(\App\Enums\PaymentStatus::FAILED, $order->payments()->first()->status);
     }
 
     public function test_failed_order_can_receive_new_payment_attempt(): void
@@ -97,7 +97,7 @@ class PaymentTest extends TestCase
         $response->assertStatus(201);
 
         $order->refresh();
-        $this->assertEquals('paid', $order->status);
+        $this->assertEquals(\App\Enums\OrderStatus::PAID, $order->status);
     }
 
     public function test_paid_order_cannot_receive_new_payment(): void

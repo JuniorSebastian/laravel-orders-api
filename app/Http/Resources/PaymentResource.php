@@ -8,8 +8,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class PaymentResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
+     * Transform the payment resource into an array
      *
+     * @param Request $request
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -17,9 +18,9 @@ class PaymentResource extends JsonResource
         return [
             'id' => $this->id,
             'order_id' => $this->order_id,
-            'amount' => $this->amount,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
+            'amount' => number_format((float) $this->amount, 2, '.', ''),
+            'status' => $this->status->value,
+            'created_at' => $this->created_at->toISOString(),
         ];
     }
 }

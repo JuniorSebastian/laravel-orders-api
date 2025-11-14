@@ -22,7 +22,16 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_id' => 'required|exists:orders,id',
+            'order_id' => 'required|integer|exists:orders,id',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'order_id.required' => 'Order ID is required',
+            'order_id.integer' => 'Order ID must be a valid integer',
+            'order_id.exists' => 'The specified order does not exist',
         ];
     }
 }
