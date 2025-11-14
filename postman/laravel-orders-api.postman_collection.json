@@ -1,0 +1,89 @@
+{
+	"info": {
+		"_postman_id": "e0d3a4b5-c2f8-47be-95b4-1f62e6e5b57e",
+		"name": "Laravel Orders API - Pedidos y Pagos",
+		"description": "Colección para probar la API Orders & Payments._EndFragment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44972098",
+		"_collection_link": "https://safasfas-2537216.postman.co/workspace/safasfas's-Workspace~af36a45a-61c2-431e-8f4c-861d01ccffda/collection/44972098-e0d3a4b5-c2f8-47be-95b4-1f62e6e5b57e?action=share&source=collection_link&creator=44972098"
+	},
+	"item": [
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "List Orders",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Process Payment",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": ""
+		},
+		{
+			"key": "order_id",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
